@@ -33,7 +33,7 @@ func (g *generator) Generate() Token {
 	binary.BigEndian.PutUint64(data, uint64(quotient))
 
 	return Token{
-		value:      hotp.Generate(g.secret, data, tokenLength),
-		timeoutSec: remainder,
+		Value:      hotp.Generate(g.secret, data, tokenLength),
+		TimeoutSec: remainder,
 	}
 }

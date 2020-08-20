@@ -1,6 +1,6 @@
 package totp
 
 type Token struct {
-	value      string
-	timeoutSec int64
+	Value      string
+	TimeoutSec int64
 }
