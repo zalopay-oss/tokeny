@@ -31,7 +31,7 @@ func (m *manager) IsRegistered() (bool, error) {
 }
 
 func (m *manager) Register(pwd string, rePwd string) error {
-	saltedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MaxCost)
+	saltedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
