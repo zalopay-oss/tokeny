@@ -14,8 +14,11 @@ type service struct {
 	tokenRepo  tokeny.Repository
 }
 
-func NewService() *service {
-	return &service{}
+func NewService(pwdManager password.Manager, tokenRepo tokeny.Repository) *service {
+	return &service{
+		pwdManager: pwdManager,
+		tokenRepo: tokenRepo,
+	}
 }
 
 func (s *service) Register(app *cli.App) {
@@ -76,12 +79,12 @@ func (s *service) add(c *cli.Context) error {
 	err := s.tokenRepo.Add(alias, secret)
 	if err != nil {
 		if errors.Is(err, tokeny.ErrEntryExistedBefore) {
-			println("alias has been used before, please choose another")
+			println("Alias has been used before, please choose another")
 			return nil
 		}
 		return err
 	}
-	println("entry has been add successfully")
+	println("Entry has been add successfully")
 	return nil
 }
 
