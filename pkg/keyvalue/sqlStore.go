@@ -8,36 +8,36 @@ import (
 )
 
 const (
-	_createSQL  = "CREATE TABLE IF NOT EXISTS kvs (key TEXT PRIMARY KEY,value TEXT)"
-	_selectSQL  = "SELECT value FROM kvs WHERE key = ?"
-	_insertSQL  = "INSERT INTO kvs (key, value) VALUES (?, ?)"
-	_replaceSQL = "REPLACE INTO kvs (key, value) VALUES (?, ?)"
+	_createSQL  = "CREATE TABLE IF NOT EXISTS kvs (k TEXT PRIMARY KEY, v TEXT)"
+	_selectSQL  = "SELECT v FROM kvs WHERE k = ?"
+	_insertSQL  = "INSERT INTO kvs (k, v) VALUES (?, ?)"
+	_replaceSQL = "REPLACE INTO kvs (k, v) VALUES (?, ?)"
 )
 
 type sqlStore struct {
-	dbPath string
+	db *sql.DB
 }
 
 func NewSQLStore(dbPath string) (*sqlStore, error) {
-	result := &sqlStore{dbPath: dbPath}
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return nil, err
+	}
+	result := &sqlStore{
+		db: db,
+	}
 	return result, result.ensureTable()
 }
 
-func (s *sqlStore) openDB() (*sql.DB, error) {
-	return sql.Open("sqlite3", s.dbPath)
-}
-
 func (s *sqlStore) ensureTable() error {
-	db, err := s.openDB()
-	if err != nil {
-		return err
-	}
-	defer s.logErr(db.Close())
-	_, err = db.Exec(_createSQL)
+	_, err := s.db.Exec(_createSQL)
 	return err
 }
 
 func (s *sqlStore) logErr(err error) {
+	if err == nil {
+		return
+	}
 	log.Printf("%q", err)
 }
 
@@ -52,13 +52,7 @@ func (s *sqlStore) Set(key string, value string) error {
 		q = _replaceSQL
 	}
 
-	db, err := s.openDB()
-	if err != nil {
-		return err
-	}
-	defer s.logErr(db.Close())
-
-	_, err = db.Exec(q, key, value)
+	_, err = s.db.Exec(q, key, value)
 
 	return err
 }
@@ -75,17 +69,11 @@ func (s *sqlStore) exist(key string) (bool, error) {
 }
 
 func (s *sqlStore) Get(key string) (string, error) {
-	db, err := s.openDB()
+	stmt, err := s.db.Prepare(_selectSQL)
 	if err != nil {
 		return "", err
 	}
-	defer s.logErr(db.Close())
-
-	stmt, err := db.Prepare(_selectSQL)
-	if err != nil {
-		return "", err
-	}
-	defer s.logErr(stmt.Close())
+	//defer s.logErr(stmt.Close())
 
 	var value string
 	err = stmt.QueryRow(key).Scan(&value)
