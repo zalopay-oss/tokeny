@@ -17,7 +17,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	kvStore, err := keyvalue.NewSQLStore(fmt.Sprintf("%s/.tokeny/d.db", usr.HomeDir))
+	dbDir := fmt.Sprintf("%s/.tokeny", usr.HomeDir)
+	if err := os.MkdirAll(dbDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+	kvStore, err := keyvalue.NewSQLStore(fmt.Sprintf("%s/d.db", dbDir))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,6 +34,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.EnableBashCompletion = true
+	app.Usage = "Another TOTP generator"
 
 	cliSvc.Register(app)
 
