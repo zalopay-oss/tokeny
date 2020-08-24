@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/ltpquang/tokeny/pkg/keyvalue"
 	"github.com/ltpquang/tokeny/pkg/password"
 	"github.com/ltpquang/tokeny/pkg/tokeny"
@@ -8,13 +9,17 @@ import (
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
+	"os/user"
 )
 
 func main() {
-	kvStore, err := keyvalue.NewSQLStore("./tokeny.db")
+	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
-		return
+	}
+	kvStore, err := keyvalue.NewSQLStore(fmt.Sprintf("%s/.tokeny/d.db", usr.HomeDir))
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	pwdManager := password.NewManager(kvStore)
