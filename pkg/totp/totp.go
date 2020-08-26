@@ -34,6 +34,6 @@ func (g *generator) Generate() Token {
 
 	return Token{
 		Value:      hotp.Generate(g.secret, data, tokenLength),
-		TimeoutSec: remainder,
+		TimeoutSec: 30 - remainder,
 	}
 }
