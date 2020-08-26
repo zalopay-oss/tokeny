@@ -17,7 +17,7 @@ type service struct {
 func NewService(pwdManager password.Manager, tokenRepo tokeny.Repository) *service {
 	return &service{
 		pwdManager: pwdManager,
-		tokenRepo: tokenRepo,
+		tokenRepo:  tokenRepo,
 	}
 }
 
@@ -79,12 +79,12 @@ func (s *service) add(c *cli.Context) error {
 	err := s.tokenRepo.Add(alias, secret)
 	if err != nil {
 		if errors.Is(err, tokeny.ErrEntryExistedBefore) {
-			println("Alias has been used before, please choose another")
+			println("Alias has been used before, please choose another.")
 			return nil
 		}
 		return err
 	}
-	println("Entry has been add successfully")
+	println("Entry has been add successfully.")
 	return nil
 }
 
@@ -187,13 +187,13 @@ func (s *service) doRegister() error {
 	err = s.pwdManager.Register(pwd, rePwd)
 	if err != nil {
 		if errors.Is(err, password.ErrPasswordsMismatch) {
-			println("Password mismatch, please try again")
+			println("Passwords do not match, please try again.")
 			return nil
 		}
 		return err
 	}
 
-	println("Registered!")
+	println("Registered.")
 	return nil
 }
 
@@ -212,7 +212,7 @@ func (s *service) doLogin() (bool, error) {
 	err = s.pwdManager.Login(result)
 	if err != nil {
 		if errors.Is(err, password.ErrWrongPassword) {
-			println("Wrong password, please try again")
+			println("Wrong password, please try again.")
 			return false, nil
 		}
 		return false, err
