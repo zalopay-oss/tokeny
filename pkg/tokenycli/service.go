@@ -53,6 +53,11 @@ func (s *service) Register(app *cli.App) {
 			Action: s.get,
 		},
 		{
+			Name: "delete",
+			Usage: "delete selected entry",
+			Action: s.delete,
+		},
+		{
 			Name:   "list",
 			Usage:  "list all entries",
 			Action: s.list,
@@ -122,6 +127,28 @@ func (s *service) get(c *cli.Context) error {
 	}
 	fmt.Printf("Here is your token for '%s', valid within the next %d %s\n", alias, t.TimeoutSec, secString)
 	println(t.Value)
+	return nil
+}
+
+func (s *service) delete(c *cli.Context) error {
+	if valid, err := s.ensureUser(); err != nil || !valid {
+		return err
+	}
+	if c.NArg() == 0 {
+		println("Please specify entry to be deleted.")
+		return nil
+	}
+	alias := c.Args().Get(0)
+
+	err := s.tokenRepo.Delete(alias)
+	if err != nil {
+		if errors.Is(err, tokeny.ErrNoEntryFound) {
+			println("Invalid entry, please choose another.")
+			return nil
+		}
+		return err
+	}
+	println("Deleted.")
 	return nil
 }
 

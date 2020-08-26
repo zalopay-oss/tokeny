@@ -48,6 +48,18 @@ func (r *repository) Generate(alias string) (totp.Token, error) {
 	return g.Generate(), nil
 }
 
+func (r *repository) Delete(alias string) error {
+	key := r.composeEntryKey(alias)
+	_, err := r.kvStore.Get(key)
+	if err != nil {
+		if errors.Is(err, keyvalue.ErrNoRecord) {
+			return ErrNoEntryFound
+		}
+		return err
+	}
+	return r.kvStore.Delete(key)
+}
+
 func (r *repository) List() ([]string, error) {
 	kvs, err := r.kvStore.GetAllWithPrefixed(entryKeyPrefix)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 const (
 	_createSQL      = "CREATE TABLE IF NOT EXISTS kvs (k TEXT PRIMARY KEY, v TEXT)"
 	_selectSQL      = "SELECT v FROM kvs WHERE k = ?"
+	_deleteSQL      = "DELETE FROM kvs WHERE k = ?"
 	_insertSQL      = "INSERT INTO kvs (k, v) VALUES (?, ?)"
 	_replaceSQL     = "REPLACE INTO kvs (k, v) VALUES (?, ?)"
 	_allPrefixedSQL = "SELECT k, v FROM kvs WHERE k LIKE ?"
@@ -85,6 +86,28 @@ func (s *sqlStore) Get(key string) (string, error) {
 	}
 
 	return value, nil
+}
+
+func (s *sqlStore) Delete(key string) error {
+	stmt, err := s.db.Prepare(_selectSQL)
+	if err != nil {
+		return err
+	}
+
+	var value string
+	err = stmt.QueryRow(key).Scan(&value)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNoRecord
+		}
+		return err
+	}
+
+	_, err = s.db.Exec(_deleteSQL, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *sqlStore) GetAllWithPrefixed(keyPrefix string) ([]KeyValue, error) {
