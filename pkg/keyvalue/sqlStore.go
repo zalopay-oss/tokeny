@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	_createSQL  = "CREATE TABLE IF NOT EXISTS kvs (k TEXT PRIMARY KEY, v TEXT)"
-	_selectSQL  = "SELECT v FROM kvs WHERE k = ?"
-	_insertSQL  = "INSERT INTO kvs (k, v) VALUES (?, ?)"
-	_replaceSQL = "REPLACE INTO kvs (k, v) VALUES (?, ?)"
+	_createSQL      = "CREATE TABLE IF NOT EXISTS kvs (k TEXT PRIMARY KEY, v TEXT)"
+	_selectSQL      = "SELECT v FROM kvs WHERE k = ?"
+	_insertSQL      = "INSERT INTO kvs (k, v) VALUES (?, ?)"
+	_replaceSQL     = "REPLACE INTO kvs (k, v) VALUES (?, ?)"
+	_allPrefixedSQL = "SELECT k, v FROM kvs WHERE k LIKE ?"
 )
 
 type sqlStore struct {
@@ -73,7 +74,6 @@ func (s *sqlStore) Get(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//defer s.logErr(stmt.Close())
 
 	var value string
 	err = stmt.QueryRow(key).Scan(&value)
@@ -85,4 +85,32 @@ func (s *sqlStore) Get(key string) (string, error) {
 	}
 
 	return value, nil
+}
+
+func (s *sqlStore) GetAllWithPrefixed(keyPrefix string) ([]KeyValue, error) {
+	stmt, err := s.db.Prepare(_allPrefixedSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]KeyValue, 0)
+
+	r, err := stmt.Query(keyPrefix + "%")
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	for r.Next() {
+		var k, v string
+		err = r.Scan(&k, &v)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, KeyValue{Key: k, Value: v})
+	}
+	if err := r.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

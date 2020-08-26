@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ltpquang/tokeny/pkg/keyvalue"
 	"github.com/ltpquang/tokeny/pkg/totp"
+	"strings"
 )
 
 const (
@@ -48,7 +49,15 @@ func (r *repository) Generate(alias string) (totp.Token, error) {
 }
 
 func (r *repository) List() ([]string, error) {
-	return make([]string, 0), nil
+	kvs, err := r.kvStore.GetAllWithPrefixed(entryKeyPrefix)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]string, len(kvs), len(kvs))
+	for i, kv := range kvs {
+		result[i] = strings.TrimPrefix(kv.Key, entryKeyPrefix)
+	}
+	return result, nil
 }
 
 func (r *repository) LastValidEntry() (string, error) {
