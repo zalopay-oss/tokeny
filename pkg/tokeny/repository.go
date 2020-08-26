@@ -77,7 +77,7 @@ func (r *repository) Delete(alias string) error {
 	if err != nil {
 		return err
 	}
-	return nil 
+	return nil
 }
 
 func (r *repository) List() ([]string, error) {
@@ -93,17 +93,17 @@ func (r *repository) List() ([]string, error) {
 }
 
 func (r *repository) removeLastValidIfEqual(alias string) error {
-	lastValid, err := r.LastValidEntry()
+	lastValid, err := r.kvStore.Get(lastValidKey)
 	if err != nil {
 		if errors.Is(err, keyvalue.ErrNoRecord) {
 			return nil
 		}
 		return err
 	}
-	if !(alias != lastValid) {
+	if alias != lastValid {
 		return nil
 	}
-	return r.kvStore.Delete(lastValid)
+	return r.kvStore.Delete(lastValidKey)
 }
 
 func (r *repository) rememberLastValidEntry(alias string) error {
