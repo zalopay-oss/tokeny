@@ -34,11 +34,13 @@ func (s *service) Register(app *cli.App) {
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:     "alias",
+					Aliases:  []string{"a"},
 					Required: true,
 					Usage:    "entry name/alias, must be identical to each other",
 				},
 				&cli.StringFlag{
 					Name:     "secret",
+					Aliases:  []string{"s"},
 					Required: true,
 					Usage:    "secret of the entry",
 				},
