@@ -5,6 +5,7 @@ import (
 	"github.com/ltpquang/tokeny/pkg/keyvalue"
 	"github.com/ltpquang/tokeny/pkg/totp"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -29,6 +30,12 @@ func (r *repository) Add(alias string, secret string) error {
 	if !errors.Is(err, keyvalue.ErrNoRecord) {
 		return err
 	}
+	secret = strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, secret)
 	return r.kvStore.Set(key, secret)
 }
 
