@@ -52,7 +52,12 @@ func (r *repository) Generate(alias string) (totp.Token, error) {
 	if err != nil {
 		return totp.Token{}, err
 	}
-	return g.Generate(), nil
+	result := g.Generate()
+	err = r.rememberLastValidEntry(alias)
+	if err != nil {
+		return totp.Token{}, err
+	}
+	return result, nil
 }
 
 func (r *repository) Delete(alias string) error {
@@ -64,7 +69,15 @@ func (r *repository) Delete(alias string) error {
 		}
 		return err
 	}
-	return r.kvStore.Delete(key)
+	err = r.kvStore.Delete(key)
+	if err != nil {
+		return err
+	}
+	err = r.removeLastValidIfEqual(alias)
+	if err != nil {
+		return err
+	}
+	return nil 
 }
 
 func (r *repository) List() ([]string, error) {
@@ -77,6 +90,24 @@ func (r *repository) List() ([]string, error) {
 		result[i] = strings.TrimPrefix(kv.Key, entryKeyPrefix)
 	}
 	return result, nil
+}
+
+func (r *repository) removeLastValidIfEqual(alias string) error {
+	lastValid, err := r.LastValidEntry()
+	if err != nil {
+		if errors.Is(err, keyvalue.ErrNoRecord) {
+			return nil
+		}
+		return err
+	}
+	if !(alias != lastValid) {
+		return nil
+	}
+	return r.kvStore.Delete(lastValid)
+}
+
+func (r *repository) rememberLastValidEntry(alias string) error {
+	return r.kvStore.Set(lastValidKey, alias)
 }
 
 func (r *repository) LastValidEntry() (string, error) {
