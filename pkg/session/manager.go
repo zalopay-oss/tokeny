@@ -18,8 +18,12 @@ type manager struct {
 }
 
 func NewManager(kvStore keyvalue.Store) *manager {
-	//TODO clean old session data
-	return &manager{kvStore: kvStore}
+	result := &manager{kvStore: kvStore}
+	err := result.cleanUp()
+	if err != nil {
+		println(err.Error())
+	}
+	return result
 }
 
 func (m *manager) IsSessionValid(sessionKey string) (bool, error) {
@@ -31,11 +35,11 @@ func (m *manager) IsSessionValid(sessionKey string) (bool, error) {
 		}
 		return false, err
 	}
-	expiredTS, err := strconv.ParseInt(expiredTSStr, 10, 64)
+	expired, err := m.isTimeStringExpired(expiredTSStr)
 	if err != nil {
 		return false, err
 	}
-	return time.Now().Unix() < expiredTS, nil
+	return !expired, nil
 }
 
 func (m *manager) NewSession(sessionKey string) error {
@@ -46,4 +50,34 @@ func (m *manager) NewSession(sessionKey string) error {
 
 func (m *manager) composeSessionKey(sessionKey string) string {
 	return keySessionPrefix + sessionKey
+}
+
+func (m *manager) cleanUp() error {
+	kvs, err := m.kvStore.GetAllWithPrefixed(keySessionPrefix)
+	if err != nil {
+		return err
+	}
+	for _, kv := range kvs {
+		expired, err := m.isTimeStringExpired(kv.Value)
+		if err != nil {
+			return err
+		}
+		if !expired {
+			continue
+		}
+		println("delete", kv.Key)
+		err = m.kvStore.Delete(kv.Key)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *manager) isTimeStringExpired(tsStr string) (bool, error) {
+	expiredTS, err := strconv.ParseInt(tsStr, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	return expiredTS < time.Now().Unix(), nil
 }
