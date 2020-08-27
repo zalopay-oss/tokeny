@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ltpquang/tokeny/pkg/keyvalue"
 	"github.com/ltpquang/tokeny/pkg/password"
+	"github.com/ltpquang/tokeny/pkg/session"
 	"github.com/ltpquang/tokeny/pkg/tokeny"
 	"github.com/ltpquang/tokeny/pkg/tokenycli"
 	"github.com/urfave/cli/v2"
@@ -28,9 +29,11 @@ func main() {
 
 	pwdManager := password.NewManager(kvStore)
 
+	sessionManager := session.NewManager(kvStore)
+
 	tokenRepo := tokeny.NewRepository(kvStore)
 
-	cliSvc := tokenycli.NewService(pwdManager, tokenRepo)
+	cliSvc := tokenycli.NewService(pwdManager, sessionManager, tokenRepo)
 
 	app := cli.NewApp()
 	app.EnableBashCompletion = true

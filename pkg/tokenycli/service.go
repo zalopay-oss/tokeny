@@ -3,21 +3,29 @@ package tokenycli
 import (
 	"fmt"
 	"github.com/ltpquang/tokeny/pkg/password"
+	"github.com/ltpquang/tokeny/pkg/session"
 	"github.com/ltpquang/tokeny/pkg/tokeny"
 	"github.com/manifoldco/promptui"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"os"
+)
+
+var (
+	ppidStr = fmt.Sprintf("%d", os.Getppid())
 )
 
 type service struct {
-	pwdManager password.Manager
-	tokenRepo  tokeny.Repository
+	pwdManager     password.Manager
+	sessionManager session.Manager
+	tokenRepo      tokeny.Repository
 }
 
-func NewService(pwdManager password.Manager, tokenRepo tokeny.Repository) *service {
+func NewService(pwdManager password.Manager, sessionManager session.Manager, tokenRepo tokeny.Repository) *service {
 	return &service{
-		pwdManager: pwdManager,
-		tokenRepo:  tokenRepo,
+		pwdManager:     pwdManager,
+		sessionManager: sessionManager,
+		tokenRepo:      tokenRepo,
 	}
 }
 
@@ -53,8 +61,8 @@ func (s *service) Register(app *cli.App) {
 			Action: s.get,
 		},
 		{
-			Name: "delete",
-			Usage: "delete selected entry",
+			Name:   "delete",
+			Usage:  "delete selected entry",
 			Action: s.delete,
 		},
 		{
@@ -75,6 +83,42 @@ func (s *service) setup(c *cli.Context) error {
 		return nil
 	}
 	return s.doRegister()
+}
+
+func (s *service) doRegister() error {
+	prompt := promptui.Prompt{
+		Label: "Password",
+		Mask:  ' ',
+	}
+
+	pwd, err := prompt.Run()
+
+	if err != nil {
+		return err
+	}
+
+	prompt = promptui.Prompt{
+		Label: "Re-type password",
+		Mask:  ' ',
+	}
+
+	rePwd, err := prompt.Run()
+
+	if err != nil {
+		return err
+	}
+
+	err = s.pwdManager.Register(pwd, rePwd)
+	if err != nil {
+		if errors.Is(err, password.ErrPasswordsMismatch) {
+			println("Passwords do not match, please try again.")
+			return nil
+		}
+		return err
+	}
+
+	println("Registered.")
+	return nil
 }
 
 func (s *service) add(c *cli.Context) error {
@@ -185,48 +229,36 @@ func (s *service) ensureUser() (bool, error) {
 		return false, err
 	}
 	if !registered {
-		return false, errors.New("No user found, please register first")
-	}
-	return s.doLogin()
-}
-
-func (s *service) doRegister() error {
-	prompt := promptui.Prompt{
-		Label: "Password",
-		Mask:  ' ',
+		return false, errors.New("No user found, please register first.")
 	}
 
-	pwd, err := prompt.Run()
-
+	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	prompt = promptui.Prompt{
-		Label: "Re-type password",
-		Mask:  ' ',
+	if valid {
+		return true, nil
 	}
 
-	rePwd, err := prompt.Run()
-
+	err = s.doLogin()
 	if err != nil {
-		return err
-	}
-
-	err = s.pwdManager.Register(pwd, rePwd)
-	if err != nil {
-		if errors.Is(err, password.ErrPasswordsMismatch) {
-			println("Passwords do not match, please try again.")
-			return nil
+		if errors.Is(err, password.ErrWrongPassword) {
+			println("Wrong password, please try again.")
+			return false, nil
 		}
-		return err
+		return false, err
 	}
 
-	println("Registered.")
-	return nil
+	err = s.sessionManager.NewSession(ppidStr)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
-func (s *service) doLogin() (bool, error) {
+func (s *service) doLogin() error {
 	prompt := promptui.Prompt{
 		Label: "Password",
 		Mask:  ' ',
@@ -235,16 +267,12 @@ func (s *service) doLogin() (bool, error) {
 	result, err := prompt.Run()
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	err = s.pwdManager.Login(result)
 	if err != nil {
-		if errors.Is(err, password.ErrWrongPassword) {
-			println("Wrong password, please try again.")
-			return false, nil
-		}
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
