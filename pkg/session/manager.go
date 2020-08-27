@@ -65,7 +65,6 @@ func (m *manager) cleanUp() error {
 		if !expired {
 			continue
 		}
-		println("delete", kv.Key)
 		err = m.kvStore.Delete(kv.Key)
 		if err != nil {
 			return err
