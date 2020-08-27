@@ -1,20 +1,37 @@
 # This is an example goreleaser.yaml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
-before:
-  hooks:
-    # you may remove this if you don't use vgo
-    - go mod download
-    # you may remove this if you don't need go generate
-    - go generate ./...
+env:
 builds:
-- env:
-  - CGO_ENABLED=1
+  - id: tokeny-darwin-amd64
+    binary: tokeny
+    env:
+      - CGO_ENABLED=1
+      - CC=o64-clang
+      - CXX=o64-clang++
+    main: ./main.go
+    goos:
+      - darwin
+    goarch:
+      - amd64
+  - id: tokeny-linux-amd64
+    binary: tokeny
+    env:
+      - CGO_ENABLED=1
+    main: ./main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
 archives:
-- replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    amd64: x86_64
+  - format: tar.gz
+    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
+    replacements:
+      amd64: 64bit
+      darwin: macOS
+      linux: Linux
+    files:
+      - README.md
+      - LICENSE
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -23,5 +40,9 @@ changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
+      - '^docs:'
+      - '^test:'
+      - '^dev:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
