@@ -2,9 +2,9 @@ package tokenycli
 
 import (
 	"fmt"
-	"github.com/ltpquang/tokeny/pkg/password"
-	"github.com/ltpquang/tokeny/pkg/session"
-	"github.com/ltpquang/tokeny/pkg/tokeny"
+	"github.com/zalopay-oss/tokeny/pkg/password"
+	"github.com/zalopay-oss/tokeny/pkg/session"
+	"github.com/zalopay-oss/tokeny/pkg/tokeny"
 	"github.com/manifoldco/promptui"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"

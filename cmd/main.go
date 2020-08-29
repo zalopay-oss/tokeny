@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/ltpquang/tokeny/pkg/keyvalue"
-	"github.com/ltpquang/tokeny/pkg/password"
-	"github.com/ltpquang/tokeny/pkg/session"
-	"github.com/ltpquang/tokeny/pkg/tokeny"
-	"github.com/ltpquang/tokeny/pkg/tokenycli"
 	"github.com/urfave/cli/v2"
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
+	"github.com/zalopay-oss/tokeny/pkg/password"
+	"github.com/zalopay-oss/tokeny/pkg/session"
+	"github.com/zalopay-oss/tokeny/pkg/tokeny"
+	"github.com/zalopay-oss/tokeny/pkg/tokenycli"
 	"log"
 	"os"
 	"os/user"

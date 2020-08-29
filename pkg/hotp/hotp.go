@@ -3,8 +3,8 @@ package hotp
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/ltpquang/tokeny/pkg/crypto"
-	"github.com/ltpquang/tokeny/pkg/utils"
+	"github.com/zalopay-oss/tokeny/pkg/crypto"
+	"github.com/zalopay-oss/tokeny/pkg/utils"
 	"math"
 )
 

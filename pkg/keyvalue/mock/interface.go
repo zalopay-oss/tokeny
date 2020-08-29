@@ -6,7 +6,7 @@ package mock_keyvalue
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	keyvalue "github.com/ltpquang/tokeny/pkg/keyvalue"
+	keyvalue "github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	reflect "reflect"
 )
 

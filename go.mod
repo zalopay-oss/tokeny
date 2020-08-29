@@ -1,4 +1,4 @@
-module github.com/ltpquang/tokeny
+module github.com/zalopay-oss/tokeny
 
 go 1.14
 

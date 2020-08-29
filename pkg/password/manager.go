@@ -2,7 +2,7 @@ package password
 
 import (
 	"encoding/hex"
-	"github.com/ltpquang/tokeny/pkg/keyvalue"
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )

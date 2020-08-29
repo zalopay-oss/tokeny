@@ -3,7 +3,7 @@ package totp
 import (
 	"encoding/base32"
 	"encoding/binary"
-	"github.com/ltpquang/tokeny/pkg/hotp"
+	"github.com/zalopay-oss/tokeny/pkg/hotp"
 	"strings"
 	"time"
 )

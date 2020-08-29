@@ -2,8 +2,8 @@ package tokeny
 
 import (
 	"errors"
-	"github.com/ltpquang/tokeny/pkg/keyvalue"
-	"github.com/ltpquang/tokeny/pkg/totp"
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
+	"github.com/zalopay-oss/tokeny/pkg/totp"
 	"strings"
 	"unicode"
 )

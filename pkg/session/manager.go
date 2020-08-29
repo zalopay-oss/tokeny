@@ -3,7 +3,7 @@ package session
 import (
 	"errors"
 	"fmt"
-	"github.com/ltpquang/tokeny/pkg/keyvalue"
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"strconv"
 	"time"
 )

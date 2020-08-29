@@ -1,6 +1,6 @@
 package tokeny
 
-import "github.com/ltpquang/tokeny/pkg/totp"
+import "github.com/zalopay-oss/tokeny/pkg/totp"
 
 type Repository interface {
 	Add(alias string, secret string) error
