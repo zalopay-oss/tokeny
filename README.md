@@ -1,19 +1,48 @@
-# tokeny
+# Tokeny
 
-Minimal TOTP generator from your Shell
+Tokeny is a minimal CLI **[TOTP](https://tools.ietf.org/html/rfc6238) (Time-Based One-Time Password)** generator. 
 
-## Installation
+## 1. Installation
 
-You can install Tokeny using one of following methods
-
-### Using `go get`
-
-Tokeny is goget-able. You just need to setup $GOBIN env, and execute:
+**Tokeny** is go-getable
 
 ```
 go get github.com/ltpquang/tokeny 
 ```
 
-### Manually
+or you can manually download binary for your system from GitHub's Releases section.
 
-Download appropriate binary for your system from GitHub's release section, and enjoy.
+## 2. Usage
+
+Please consult `tokeny --help` for all features' usages.
+
+```bash
+NAME:
+   tokeny - Another TOTP generator
+
+USAGE:
+   tokeny [global options] command [command options] [arguments...]
+
+COMMANDS:
+   setup    setup master password
+   add      add new entry
+   get      get OTP
+   delete   delete selected entry
+   list     list all entries
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+### Master Password
+
+**Tokeny** requires a Master Password for authenticating you against the whole application.
+
+Master Password can be set **only once**, on the very first time you run `tokeny setup`. After that, all other commands will ask for Master Password once for every 5 minutes.
+
+In case you lost your Master Password, the only way to reset it is removing all data (including token entries), located at `$HOME/.tokeny`.
+
+## 3. Caution
+
+Please think twice before using **Tokeny**, since having token generator in your machine may make you lose the benefits of **Two-Factor** Authentication.
