@@ -7,14 +7,8 @@ In the meantime, GoReleaser is having [problem](https://github.com/goreleaser/go
 The solution is running GoReleaser inside a Docker container as proposed by @robdefeo at [goreleaser-xcgo](https://github.com/mailchain/goreleaser-xcgo). 
 
 ```bash
-docker run --rm --privileged \  
-  -e GITHUB_TOKEN=$GITHUB_TOKEN \
-  -v $TOKENY_LOCAL_PATH:/go/src/github.com/ltpquang/tokeny \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -w /go/src/github.com/ltpquang/tokeny \
-  mailchain/goreleaser-xcgo --rm-dist
+docker run --rm --privileged -e GITHUB_TOKEN=$GITHUB_TOKEN -v $(pwd):/go/src/github.com/zalopay-oss/tokeny -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/zalopay-oss/tokeny mailchain/goreleaser-xcgo --rm-dist
 ```
 
 * `$GITHUB_TOKEN` represents your GitHub's personal access token
-* `$TOKENY_LOCAL_PATH` represents **Tokeny** local directory
 
