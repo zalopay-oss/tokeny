@@ -7,7 +7,7 @@ Tokeny is a minimal CLI **[TOTP](https://tools.ietf.org/html/rfc6238) (Time-Base
 **Tokeny** is go-getable
 
 ```
-go get github.com/ltpquang/tokeny 
+go get github.com/zalopay-oss/tokeny 
 ```
 
 or you can manually download binary for your system from GitHub's Releases section.
