@@ -3,6 +3,7 @@ module github.com/zalopay-oss/tokeny
 go 1.14
 
 require (
+	github.com/atotto/clipboard v0.1.2
 	github.com/golang/mock v1.4.4
 	github.com/manifoldco/promptui v0.7.0
 	github.com/mattn/go-sqlite3 v1.14.0

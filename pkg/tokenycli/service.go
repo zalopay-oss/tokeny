@@ -2,12 +2,13 @@ package tokenycli
 
 import (
 	"fmt"
-	"github.com/zalopay-oss/tokeny/pkg/password"
-	"github.com/zalopay-oss/tokeny/pkg/session"
-	"github.com/zalopay-oss/tokeny/pkg/tokeny"
+	"github.com/atotto/clipboard"
 	"github.com/manifoldco/promptui"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"github.com/zalopay-oss/tokeny/pkg/password"
+	"github.com/zalopay-oss/tokeny/pkg/session"
+	"github.com/zalopay-oss/tokeny/pkg/tokeny"
 	"os"
 )
 
@@ -58,6 +59,14 @@ func (s *service) Register(app *cli.App) {
 		{
 			Name:   "get",
 			Usage:  "get OTP",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:     "copy",
+					Aliases:  []string{"c"},
+					Required: false,
+					Usage:    "copy generated token to clipboard",
+				},
+			},
 			Action: s.get,
 		},
 		{
@@ -171,6 +180,14 @@ func (s *service) get(c *cli.Context) error {
 	}
 	fmt.Printf("Here is your token for '%s', valid within the next %d %s\n", alias, t.TimeoutSec, secString)
 	println(t.Value)
+	if c.Bool("copy") {
+		err := clipboard.WriteAll(t.Value)
+		if err != nil {
+			println("Cannot copy to clipboard.")
+		} else {
+			println("Copied to clipboard.")
+		}
+	}
 	return nil
 }
 
