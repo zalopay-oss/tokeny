@@ -37,6 +37,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-test, lint]
     steps:
+      - name: OSXCross for CGO Support
+        run: |
+          mkdir ../../osxcross
+          git clone https://github.com/plentico/osxcross-target.git ../../osxcross/target
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
