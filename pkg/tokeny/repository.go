@@ -2,10 +2,11 @@ package tokeny
 
 import (
 	"errors"
-	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
-	"github.com/zalopay-oss/tokeny/pkg/totp"
 	"strings"
 	"unicode"
+
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
+	"github.com/zalopay-oss/tokeny/pkg/totp"
 )
 
 const (
@@ -85,7 +86,7 @@ func (r *repository) List() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make([]string, len(kvs), len(kvs))
+	result := make([]string, len(kvs))
 	for i, kv := range kvs {
 		result[i] = strings.TrimPrefix(kv.Key, entryKeyPrefix)
 	}
