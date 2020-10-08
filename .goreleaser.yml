@@ -6,8 +6,8 @@ builds:
     binary: tokeny
     env:
       - CGO_ENABLED=1
-      - CC=o64-clang
-      - CXX=o64-clang++
+      - CC=/home/runner/work/osxcross/target/bin/o64-clang
+      - CXX=/home/runner/work/osxcross/target/bin/o64-clang++
     main: ./main.go
     goos:
       - darwin
