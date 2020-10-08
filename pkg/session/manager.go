@@ -3,9 +3,10 @@ package session
 import (
 	"errors"
 	"fmt"
-	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"strconv"
 	"time"
+
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 )
 
 const (

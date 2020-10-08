@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"os/user"
+
 	"github.com/urfave/cli/v2"
 	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"github.com/zalopay-oss/tokeny/pkg/password"
 	"github.com/zalopay-oss/tokeny/pkg/session"
 	"github.com/zalopay-oss/tokeny/pkg/tokeny"
 	"github.com/zalopay-oss/tokeny/pkg/tokenycli"
-	"log"
-	"os"
-	"os/user"
 )
 
 func main() {

@@ -2,6 +2,8 @@ package tokenycli
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/atotto/clipboard"
 	"github.com/manifoldco/promptui"
 	"github.com/pkg/errors"
@@ -9,7 +11,6 @@ import (
 	"github.com/zalopay-oss/tokeny/pkg/password"
 	"github.com/zalopay-oss/tokeny/pkg/session"
 	"github.com/zalopay-oss/tokeny/pkg/tokeny"
-	"os"
 )
 
 var (
@@ -57,8 +58,8 @@ func (s *service) Register(app *cli.App) {
 			Action: s.add,
 		},
 		{
-			Name:   "get",
-			Usage:  "get OTP",
+			Name:  "get",
+			Usage: "get OTP",
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:     "copy",

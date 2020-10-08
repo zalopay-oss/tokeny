@@ -3,13 +3,16 @@ package totp
 import (
 	"encoding/base32"
 	"encoding/binary"
-	"github.com/zalopay-oss/tokeny/pkg/hotp"
 	"strings"
 	"time"
+
+	"github.com/zalopay-oss/tokeny/pkg/hotp"
 )
 
 const (
-	tokenLength = 6
+	tokenLength        = 6
+	bufferLength       = 8
+	otpTTL       int64 = 30
 )
 
 type generator struct {
@@ -26,14 +29,14 @@ func NewGenerator(secret string) (*generator, error) {
 
 func (g *generator) Generate() Token {
 	now := time.Now().Unix()
-	quotient := now / 30
-	remainder := now % 30
+	quotient := now / otpTTL
+	remainder := now % otpTTL
 
-	data := make([]byte, 8)
+	data := make([]byte, bufferLength)
 	binary.BigEndian.PutUint64(data, uint64(quotient))
 
 	return Token{
 		Value:      hotp.Generate(g.secret, data, tokenLength),
-		TimeoutSec: 30 - remainder,
+		TimeoutSec: otpTTL - remainder,
 	}
 }
