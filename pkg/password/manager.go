@@ -2,8 +2,9 @@ package password
 
 import (
 	"encoding/hex"
-	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
+
 	"github.com/pkg/errors"
+	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -75,4 +76,3 @@ func (m *manager) Login(pwd string) error {
 
 	return nil
 }
-
