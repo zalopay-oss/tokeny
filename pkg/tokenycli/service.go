@@ -3,6 +3,7 @@ package tokenycli
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/atotto/clipboard"
 	"github.com/manifoldco/promptui"
@@ -14,7 +15,9 @@ import (
 )
 
 var (
-	ppidStr = fmt.Sprintf("%d", os.Getppid())
+	ppidStr             = fmt.Sprintf("%d", os.Getppid())
+	loginMaxRetries     = 3
+	failedLogInWaitTime = time.Second
 )
 
 type service struct {
@@ -259,13 +262,23 @@ func (s *service) ensureUser() (bool, error) {
 		return true, nil
 	}
 
-	err = s.doLogin()
-	if err != nil {
+	var isLoggedIn = false
+	for i := 0; i < loginMaxRetries; i++ {
+		err = s.doLogin()
 		if errors.Is(err, password.ErrWrongPassword) {
+			time.Sleep(failedLogInWaitTime)
 			println("Wrong password, please try again.")
-			return false, nil
+			continue
 		}
-		return false, err
+		if err != nil {
+			return false, err
+		}
+		isLoggedIn = true
+		break
+	}
+
+	if !isLoggedIn {
+		return false, nil
 	}
 
 	err = s.sessionManager.NewSession(ppidStr)
