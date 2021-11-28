@@ -7,19 +7,19 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-type levelDb struct {
+type levelDB struct {
 	db *leveldb.DB
 }
 
-func NewLevelDBStore(db *leveldb.DB) *levelDb {
-	return &levelDb{db: db}
+func NewLevelDBStore(db *leveldb.DB) *levelDB {
+	return &levelDB{db: db}
 }
 
-func (l *levelDb) Set(key string, value string) error {
+func (l *levelDB) Set(key string, value string) error {
 	return l.db.Put([]byte(key), []byte(value), nil)
 }
 
-func (l *levelDb) Get(key string) (string, error) {
+func (l *levelDB) Get(key string) (string, error) {
 	r, err := l.db.Get([]byte(key), nil)
 	if errors.Is(err, leveldb.ErrNotFound) {
 		return "", ErrNoRecord
@@ -30,11 +30,11 @@ func (l *levelDb) Get(key string) (string, error) {
 	return string(r), nil
 }
 
-func (l *levelDb) Delete(key string) error {
+func (l *levelDB) Delete(key string) error {
 	return l.db.Delete([]byte(key), nil)
 }
 
-func (l *levelDb) GetAllWithPrefixed(keyPrefix string) ([]KeyValue, error) {
+func (l *levelDB) GetAllWithPrefixed(keyPrefix string) ([]KeyValue, error) {
 	result := make([]KeyValue, 0)
 	iter := l.db.NewIterator(util.BytesPrefix([]byte(keyPrefix)), nil)
 	for iter.Next() {
