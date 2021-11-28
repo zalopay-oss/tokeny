@@ -1,3 +1,5 @@
+project_name: tokeny
+
 builds:
   - id: tokeny-darwin-amd64
     binary: tokeny
@@ -8,6 +10,12 @@ builds:
       - darwin
     goarch:
       - amd64
+      - arm64
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+    ldflags:
+      - -s -w
   - id: tokeny-linux-amd64
     binary: tokeny
     env:
@@ -18,10 +26,8 @@ builds:
     goarch:
       - amd64
 archives:
-  - format: tar.gz
-    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
-    replacements:
-      amd64: 64bit
+  - replacements:
+      amd64: x86_64
       darwin: macOS
       linux: Linux
     files:
