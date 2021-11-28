@@ -4,13 +4,26 @@ Tokeny is a minimal CLI **[TOTP](https://tools.ietf.org/html/rfc6238) (Time-Base
 
 ## 1. Installation
 
-**Tokeny** is go-getable
+### Using Homebrew
 
 ```
-go get github.com/zalopay-oss/tokeny
+brew install zalopay-oss/tap/tokeny
 ```
 
-or you can manually download binary for your system from GitHub's Releases section.
+or
+
+```
+brew tap zalopay-oss/tap
+brew install tokeny
+```
+
+### Using pre-built binaries
+
+Download proper binary from [releases section](https://github.com/zalopay-oss/tokeny/releases) and put into your paths.
+
+### Build from source
+
+You can also clone this repo and build it yourself.
 
 ## 2. Usage
 
