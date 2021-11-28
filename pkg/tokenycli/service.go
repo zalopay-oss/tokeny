@@ -31,13 +31,33 @@ func NewService(pwdManager password.Manager, sessionManager session.Manager, tok
 	}
 }
 
-func (s *service) Register(app *cli.App) {
-	app.Commands = []*cli.Command{
+func (s *service) Register(app *cli.App) error {
+	userProfileAvailable, err := s.pwdManager.IsRegistered()
+	if err != nil {
+		return err
+	}
+
+	if !userProfileAvailable {
+		app.Commands = s.getSetupCommand()
+	} else {
+		app.Commands = s.getNormalCommands()
+	}
+
+	return nil
+}
+
+func (s *service) getSetupCommand() []*cli.Command {
+	return []*cli.Command{
 		{
 			Name:   "setup",
 			Usage:  "setup master password",
 			Action: s.setup,
 		},
+	}
+}
+
+func (s *service) getNormalCommands() []*cli.Command {
+	return []*cli.Command{
 		{
 			Name:  "add",
 			Usage: "add new entry",
@@ -55,7 +75,7 @@ func (s *service) Register(app *cli.App) {
 					Usage:    "secret of the entry",
 				},
 			},
-			Action: s.add,
+			Action: s.sessionWrapper(s.add),
 		},
 		{
 			Name:  "get",
@@ -68,17 +88,17 @@ func (s *service) Register(app *cli.App) {
 					Usage:    "copy generated token to clipboard",
 				},
 			},
-			Action: s.get,
+			Action: s.sessionWrapper(s.get),
 		},
 		{
 			Name:   "delete",
 			Usage:  "delete selected entry",
-			Action: s.delete,
+			Action: s.sessionWrapper(s.delete),
 		},
 		{
 			Name:   "list",
 			Usage:  "list all entries",
-			Action: s.list,
+			Action: s.sessionWrapper(s.list),
 		},
 	}
 }
@@ -131,10 +151,16 @@ func (s *service) doRegister() error {
 	return nil
 }
 
-func (s *service) add(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
-		return err
+func (s *service) sessionWrapper(actionFunc cli.ActionFunc) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		if valid, err := s.ensureSession(); err != nil || !valid {
+			return err
+		}
+		return actionFunc(c)
 	}
+}
+
+func (s *service) add(c *cli.Context) error {
 	alias := c.String("alias")
 	secret := c.String("secret")
 	err := s.tokenRepo.Add(alias, secret)
@@ -145,14 +171,11 @@ func (s *service) add(c *cli.Context) error {
 		}
 		return err
 	}
-	println("Entry has been add successfully.")
+	println("Entry has been added successfully.")
 	return nil
 }
 
 func (s *service) get(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
-		return err
-	}
 	var alias string
 	if c.NArg() > 0 {
 		alias = c.Args().Get(0)
@@ -160,7 +183,7 @@ func (s *service) get(c *cli.Context) error {
 		var err error
 		alias, err = s.tokenRepo.LastValidEntry()
 		if errors.Is(err, tokeny.ErrNoEntryFound) {
-			println("Please specify entry to generate token.")
+			println("Please specify entry to generate token: tokeny get <alias>")
 			return nil
 		}
 		if err != nil {
@@ -193,9 +216,6 @@ func (s *service) get(c *cli.Context) error {
 }
 
 func (s *service) delete(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
-		return err
-	}
 	if c.NArg() == 0 {
 		println("Please specify entry to be deleted.")
 		return nil
@@ -215,9 +235,6 @@ func (s *service) delete(c *cli.Context) error {
 }
 
 func (s *service) list(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
-		return err
-	}
 	aliases, err := s.tokenRepo.List()
 	if err != nil {
 		return err
@@ -241,15 +258,7 @@ func (s *service) list(c *cli.Context) error {
 	return nil
 }
 
-func (s *service) ensureUser() (bool, error) {
-	registered, err := s.pwdManager.IsRegistered()
-	if err != nil {
-		return false, err
-	}
-	if !registered {
-		return false, errors.New("No user found, please register first.")
-	}
-
+func (s *service) ensureSession() (bool, error) {
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
 		return false, err
