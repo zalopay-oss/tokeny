@@ -31,13 +31,33 @@ func NewService(pwdManager password.Manager, sessionManager session.Manager, tok
 	}
 }
 
-func (s *service) Register(app *cli.App) {
-	app.Commands = []*cli.Command{
+func (s *service) Register(app *cli.App) error {
+	userProfileAvailable, err := s.pwdManager.IsRegistered()
+	if err != nil {
+		return err
+	}
+
+	if !userProfileAvailable {
+		app.Commands = s.getSetupCommand()
+	} else {
+		app.Commands = s.getNormalCommands()
+	}
+
+	return nil
+}
+
+func (s *service) getSetupCommand() []*cli.Command {
+	return []*cli.Command{
 		{
 			Name:   "setup",
 			Usage:  "setup master password",
 			Action: s.setup,
 		},
+	}
+}
+
+func (s *service) getNormalCommands() []*cli.Command {
+	return []*cli.Command{
 		{
 			Name:  "add",
 			Usage: "add new entry",
@@ -132,7 +152,7 @@ func (s *service) doRegister() error {
 }
 
 func (s *service) add(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
+	if valid, err := s.ensureSession(); err != nil || !valid {
 		return err
 	}
 	alias := c.String("alias")
@@ -150,7 +170,7 @@ func (s *service) add(c *cli.Context) error {
 }
 
 func (s *service) get(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
+	if valid, err := s.ensureSession(); err != nil || !valid {
 		return err
 	}
 	var alias string
@@ -193,7 +213,7 @@ func (s *service) get(c *cli.Context) error {
 }
 
 func (s *service) delete(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
+	if valid, err := s.ensureSession(); err != nil || !valid {
 		return err
 	}
 	if c.NArg() == 0 {
@@ -215,7 +235,7 @@ func (s *service) delete(c *cli.Context) error {
 }
 
 func (s *service) list(c *cli.Context) error {
-	if valid, err := s.ensureUser(); err != nil || !valid {
+	if valid, err := s.ensureSession(); err != nil || !valid {
 		return err
 	}
 	aliases, err := s.tokenRepo.List()
@@ -241,15 +261,7 @@ func (s *service) list(c *cli.Context) error {
 	return nil
 }
 
-func (s *service) ensureUser() (bool, error) {
-	registered, err := s.pwdManager.IsRegistered()
-	if err != nil {
-		return false, err
-	}
-	if !registered {
-		return false, errors.New("No user found, please run [tokeny setup] first.")
-	}
-
+func (s *service) ensureSession() (bool, error) {
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
 		return false, err
