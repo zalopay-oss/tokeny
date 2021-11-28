@@ -160,7 +160,7 @@ func (s *service) get(c *cli.Context) error {
 		var err error
 		alias, err = s.tokenRepo.LastValidEntry()
 		if errors.Is(err, tokeny.ErrNoEntryFound) {
-			println("Please specify entry to generate token.")
+			println("Please specify entry to generate token: tokeny get <alias>")
 			return nil
 		}
 		if err != nil {
@@ -247,7 +247,7 @@ func (s *service) ensureUser() (bool, error) {
 		return false, err
 	}
 	if !registered {
-		return false, errors.New("No user found, please register first.")
+		return false, errors.New("No user found, please run [tokeny setup] first.")
 	}
 
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
