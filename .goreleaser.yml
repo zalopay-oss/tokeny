@@ -25,6 +25,19 @@ builds:
       - linux
     goarch:
       - amd64
+brews:
+  - name: tokeny
+    tap:
+      owner: zalopay-oss
+      name: homebrew-tap
+    url_template: "https://github.com/zalopay-oss/tokeny/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: Tokeny's GitHubAction
+      email: phuc.quang102@gmail.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    folder: Formula
+    homepage: "https://github.com/zalopay-oss/tokeny"
+    description: "Minimal TOTP generator from your Shell"
 archives:
   - replacements:
       amd64: x86_64
