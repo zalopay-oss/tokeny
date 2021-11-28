@@ -1,11 +1,11 @@
 project_name: tokeny
 
 builds:
-  - id: tokeny-darwin-amd64
-    binary: tokeny
+  - # macOS
+    id: darwin
+    main: ./main.go
     env:
       - CGO_ENABLED=0
-    main: ./main.go
     goos:
       - darwin
     goarch:
@@ -16,11 +16,11 @@ builds:
       - darwin_arm64
     ldflags:
       - -s -w
-  - id: tokeny-linux-amd64
-    binary: tokeny
+  - # Linux
+    id: linux
+    main: ./main.go
     env:
       - CGO_ENABLED=0
-    main: ./main.go
     goos:
       - linux
     goarch:
