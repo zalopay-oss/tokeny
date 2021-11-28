@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 
+	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/urfave/cli/v2"
 	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"github.com/zalopay-oss/tokeny/pkg/password"
@@ -23,10 +24,12 @@ func main() {
 	if err := os.MkdirAll(dbDir, os.ModePerm); err != nil {
 		log.Fatal(err)
 	}
-	kvStore, err := keyvalue.NewSQLStore(fmt.Sprintf("%s/d.db", dbDir))
+	db, err := leveldb.OpenFile(fmt.Sprintf("%s/ld.db", dbDir), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
+	kvStore := keyvalue.NewLevelDBStore(db)
 
 	pwdManager := password.NewManager(kvStore)
 

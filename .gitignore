@@ -127,3 +127,4 @@ fabric.properties
 # VSCode
 __debug_bin
 .vscode
+/vendor/
