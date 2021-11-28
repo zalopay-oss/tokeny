@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	kvStore := keyvalue.NewLevelDBStore(db)
 
 	pwdManager := password.NewManager(kvStore)
@@ -43,7 +43,10 @@ func main() {
 	app.EnableBashCompletion = true
 	app.Usage = "Another TOTP generator"
 
-	cliSvc.Register(app)
+	err = cliSvc.Register(app)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if err = app.Run(os.Args); err != nil {
 		log.SetFlags(0)
