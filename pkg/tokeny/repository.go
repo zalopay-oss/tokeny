@@ -65,7 +65,7 @@ func (r *repository) Generate(alias string) (totp.Token, error) {
 		return totp.Token{}, err
 	}
 
-	secretValue, err := r.getSecret(key, entryValue)
+	secretValue, err := r.getOrMigrateSecret(key, entryValue)
 	if err != nil {
 		if errors.Is(err, secretstore.ErrNoSecret) {
 			return totp.Token{}, ErrNoEntryFound
@@ -146,12 +146,12 @@ func (r *repository) rememberLastValidEntry(alias string) error {
 func (r *repository) rollbackSecretStoreDelete(key string, cause error) error {
 	rollbackErr := r.secretStore.Delete(key)
 	if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
-		return fmt.Errorf("%w: rollback secret delete failed: %v", cause, rollbackErr)
+		return fmt.Errorf("%w: failed to set entry metadata, rollback of secret storage failed: %v", cause, rollbackErr)
 	}
 	return cause
 }
 
-func (r *repository) getSecret(key string, entryValue string) (string, error) {
+func (r *repository) getOrMigrateSecret(key string, entryValue string) (string, error) {
 	if entryValue != entryMetadataValue {
 		err := r.secretStore.Set(key, entryValue)
 		if err != nil {
