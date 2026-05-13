@@ -1,6 +1,7 @@
 package tokeny
 
 import (
+	"errors"
 	"sort"
 	"strings"
 	"testing"
@@ -55,6 +56,8 @@ func (s *inMemoryKVStore) GetAllWithPrefixed(keyPrefix string) ([]keyvalue.KeyVa
 
 type inMemorySecretStore struct {
 	values map[string]string
+	setErr error
+	getErr error
 }
 
 func newInMemorySecretStore() *inMemorySecretStore {
@@ -62,11 +65,17 @@ func newInMemorySecretStore() *inMemorySecretStore {
 }
 
 func (s *inMemorySecretStore) Set(key string, value string) error {
+	if s.setErr != nil {
+		return s.setErr
+	}
 	s.values[key] = value
 	return nil
 }
 
 func (s *inMemorySecretStore) Get(key string) (string, error) {
+	if s.getErr != nil {
+		return "", s.getErr
+	}
 	value, ok := s.values[key]
 	if !ok {
 		return "", secret.ErrNoSecret
@@ -119,4 +128,27 @@ func TestRepositoryDeleteRemovesStoredSecret(t *testing.T) {
 	assert.False(t, hasSecret)
 	_, hasLastValid := kvStore.values[lastValidKey]
 	assert.False(t, hasLastValid)
+}
+
+func TestRepositoryAddReturnsSecretStoreError(t *testing.T) {
+	kvStore := newInMemoryKVStore()
+	secretStore := newInMemorySecretStore()
+	secretStore.setErr = errors.New("set failed")
+
+	err := NewRepository(kvStore, secretStore).Add("github", "JBSWY3DPEHPK3PXP")
+
+	assert.EqualError(t, err, "set failed")
+	_, hasEntry := kvStore.values["entry:github"]
+	assert.False(t, hasEntry)
+}
+
+func TestRepositoryGenerateReturnsSecretStoreError(t *testing.T) {
+	kvStore := newInMemoryKVStore()
+	secretStore := newInMemorySecretStore()
+	secretStore.getErr = errors.New("get failed")
+	kvStore.values["entry:github"] = entryMetadataValue
+
+	_, err := NewRepository(kvStore, secretStore).Generate("github")
+
+	assert.EqualError(t, err, "get failed")
 }
