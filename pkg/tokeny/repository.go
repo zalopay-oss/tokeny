@@ -6,20 +6,23 @@ import (
 	"unicode"
 
 	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
+	secretstore "github.com/zalopay-oss/tokeny/pkg/secret"
 	"github.com/zalopay-oss/tokeny/pkg/totp"
 )
 
 const (
-	entryKeyPrefix = "entry:"
-	lastValidKey   = "last_valid"
+	entryKeyPrefix     = "entry:"
+	entryMetadataValue = "__tokeny_secret_ref__"
+	lastValidKey       = "last_valid"
 )
 
 type repository struct {
-	kvStore keyvalue.Store
+	kvStore     keyvalue.Store
+	secretStore secretstore.Store
 }
 
-func NewRepository(kvStore keyvalue.Store) *repository {
-	return &repository{kvStore: kvStore}
+func NewRepository(kvStore keyvalue.Store, secretStore secretstore.Store) *repository {
+	return &repository{kvStore: kvStore, secretStore: secretStore}
 }
 
 func (r *repository) Add(alias string, secret string) error {
@@ -37,19 +40,43 @@ func (r *repository) Add(alias string, secret string) error {
 		}
 		return r
 	}, secret)
-	return r.kvStore.Set(key, secret)
+
+	err = r.secretStore.Set(key, secret)
+	if err != nil {
+		return err
+	}
+
+	err = r.kvStore.Set(key, entryMetadataValue)
+	if err != nil {
+		rollbackErr := r.secretStore.Delete(key)
+		if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (r *repository) Generate(alias string) (totp.Token, error) {
 	key := r.composeEntryKey(alias)
-	secret, err := r.kvStore.Get(key)
+	entryValue, err := r.kvStore.Get(key)
 	if err != nil {
 		if errors.Is(err, keyvalue.ErrNoRecord) {
 			return totp.Token{}, ErrNoEntryFound
 		}
 		return totp.Token{}, err
 	}
-	g, err := totp.NewGenerator(secret)
+
+	secretValue, err := r.getSecret(key, entryValue)
+	if err != nil {
+		if errors.Is(err, secretstore.ErrNoSecret) {
+			return totp.Token{}, ErrNoEntryFound
+		}
+		return totp.Token{}, err
+	}
+
+	g, err := totp.NewGenerator(secretValue)
 	if err != nil {
 		return totp.Token{}, err
 	}
@@ -63,13 +90,21 @@ func (r *repository) Generate(alias string) (totp.Token, error) {
 
 func (r *repository) Delete(alias string) error {
 	key := r.composeEntryKey(alias)
-	_, err := r.kvStore.Get(key)
+	entryValue, err := r.kvStore.Get(key)
 	if err != nil {
 		if errors.Is(err, keyvalue.ErrNoRecord) {
 			return ErrNoEntryFound
 		}
 		return err
 	}
+
+	if entryValue == entryMetadataValue {
+		err = r.secretStore.Delete(key)
+		if err != nil && !errors.Is(err, secretstore.ErrNoSecret) {
+			return err
+		}
+	}
+
 	err = r.kvStore.Delete(key)
 	if err != nil {
 		return err
@@ -109,6 +144,24 @@ func (r *repository) removeLastValidIfEqual(alias string) error {
 
 func (r *repository) rememberLastValidEntry(alias string) error {
 	return r.kvStore.Set(lastValidKey, alias)
+}
+
+func (r *repository) getSecret(key string, entryValue string) (string, error) {
+	if entryValue != entryMetadataValue {
+		err := r.secretStore.Set(key, entryValue)
+		if err != nil {
+			return "", err
+		}
+
+		err = r.kvStore.Set(key, entryMetadataValue)
+		if err != nil {
+			return "", err
+		}
+
+		return entryValue, nil
+	}
+
+	return r.secretStore.Get(key)
 }
 
 func (r *repository) LastValidEntry() (string, error) {

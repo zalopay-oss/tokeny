@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/zalopay-oss/tokeny/pkg/keyvalue"
 	"github.com/zalopay-oss/tokeny/pkg/password"
+	"github.com/zalopay-oss/tokeny/pkg/secret"
 	"github.com/zalopay-oss/tokeny/pkg/session"
 	"github.com/zalopay-oss/tokeny/pkg/tokeny"
 	"github.com/zalopay-oss/tokeny/pkg/tokenycli"
@@ -30,12 +31,13 @@ func main() {
 	}
 	defer func() { _ = db.Close() }()
 	kvStore := keyvalue.NewLevelDBStore(db)
+	secretStore := secret.NewDefaultStore(kvStore)
 
 	pwdManager := password.NewManager(kvStore)
 
 	sessionManager := session.NewManager(kvStore)
 
-	tokenRepo := tokeny.NewRepository(kvStore)
+	tokenRepo := tokeny.NewRepository(kvStore, secretStore)
 
 	cliSvc := tokenycli.NewService(pwdManager, sessionManager, tokenRepo)
 

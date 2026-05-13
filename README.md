@@ -56,6 +56,12 @@ Master Password can be set **only once**, on the very first time you run `tokeny
 
 In case you lost your Master Password, the only way to reset it is removing all data (including token entries), located at `$HOME/.tokeny`.
 
+### Secret Storage
+
+**Tokeny** stores TOTP secrets in the OS credential store when one is available, such as macOS Keychain.
+
+When an OS credential store is unavailable, **Tokeny** falls back to local storage under `$HOME/.tokeny`.
+
 ## 3. Caution
 
 Please think twice before using **Tokeny**, since having token generator in your machine may make you lose the benefits of **Two-Factor** Authentication.
