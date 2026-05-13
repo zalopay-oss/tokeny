@@ -155,6 +155,10 @@ func (r *repository) getSecret(key string, entryValue string) (string, error) {
 
 		err = r.kvStore.Set(key, entryMetadataValue)
 		if err != nil {
+			rollbackErr := r.secretStore.Delete(key)
+			if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
+				return "", rollbackErr
+			}
 			return "", err
 		}
 

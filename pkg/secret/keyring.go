@@ -59,7 +59,7 @@ func (s *keyringStore) Get(key string) (string, error) {
 
 func (s *keyringStore) Delete(key string) error {
 	err := s.keyring.Remove(key)
-	if err != nil && err == keyring.ErrKeyNotFound {
+	if err == keyring.ErrKeyNotFound {
 		return ErrNoSecret
 	}
 	return err
