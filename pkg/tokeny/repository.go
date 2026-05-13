@@ -2,6 +2,7 @@ package tokeny
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -48,11 +49,7 @@ func (r *repository) Add(alias string, secret string) error {
 
 	err = r.kvStore.Set(key, entryMetadataValue)
 	if err != nil {
-		rollbackErr := r.secretStore.Delete(key)
-		if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
-			return rollbackErr
-		}
-		return err
+		return r.rollbackSecretStoreDelete(key, err)
 	}
 
 	return nil
@@ -146,6 +143,14 @@ func (r *repository) rememberLastValidEntry(alias string) error {
 	return r.kvStore.Set(lastValidKey, alias)
 }
 
+func (r *repository) rollbackSecretStoreDelete(key string, cause error) error {
+	rollbackErr := r.secretStore.Delete(key)
+	if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
+		return fmt.Errorf("%w: rollback secret delete failed: %v", cause, rollbackErr)
+	}
+	return cause
+}
+
 func (r *repository) getSecret(key string, entryValue string) (string, error) {
 	if entryValue != entryMetadataValue {
 		err := r.secretStore.Set(key, entryValue)
@@ -155,11 +160,7 @@ func (r *repository) getSecret(key string, entryValue string) (string, error) {
 
 		err = r.kvStore.Set(key, entryMetadataValue)
 		if err != nil {
-			rollbackErr := r.secretStore.Delete(key)
-			if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
-				return "", rollbackErr
-			}
-			return "", err
+			return "", r.rollbackSecretStoreDelete(key, err)
 		}
 
 		return entryValue, nil
