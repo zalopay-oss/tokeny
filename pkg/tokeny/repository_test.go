@@ -83,7 +83,7 @@ func TestRepositoryAddStoresSecretOutsideEntryMetadata(t *testing.T) {
 	kvStore := newInMemoryKVStore()
 	secretStore := newInMemorySecretStore()
 
-	err := NewRepository(kvStore, secretStore).Add("github", " JBSW Y3DP EHPK3PXP ")
+	err := NewRepository(kvStore, secretStore).Add("github", " JBSW\tY3DP\nEHPK3PXP ")
 
 	assert.NoError(t, err)
 	assert.Equal(t, entryMetadataValue, kvStore.values["entry:github"])
