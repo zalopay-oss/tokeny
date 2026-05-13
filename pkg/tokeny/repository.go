@@ -146,7 +146,7 @@ func (r *repository) rememberLastValidEntry(alias string) error {
 func (r *repository) rollbackSecretStoreDelete(key string, cause error) error {
 	rollbackErr := r.secretStore.Delete(key)
 	if rollbackErr != nil && !errors.Is(rollbackErr, secretstore.ErrNoSecret) {
-		return fmt.Errorf("%w: failed to set entry metadata, rollback of secret storage failed: %v", cause, rollbackErr)
+		return fmt.Errorf("failed to set entry metadata: %w (also failed to rollback secret storage: %v)", cause, rollbackErr)
 	}
 	return cause
 }

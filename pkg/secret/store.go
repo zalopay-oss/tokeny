@@ -11,6 +11,9 @@ type fallbackStore struct {
 	kvStore keyvalue.Store
 }
 
+// NewDefaultStore prefers OS-backed credential stores such as macOS Keychain,
+// Windows Credential Manager, and Linux desktop keyrings before falling back to
+// local storage in the Tokeny data directory.
 func NewDefaultStore(kvStore keyvalue.Store) Store {
 	result, err := newKeyringStore()
 	if err == nil {
