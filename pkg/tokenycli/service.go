@@ -206,7 +206,9 @@ func (s *service) get(c *cli.Context) error {
 		}
 		return err
 	}
-	writeToken(os.Stdout, t, alias, c.Bool("raw"))
+	if err := writeToken(os.Stdout, t, alias, c.Bool("raw")); err != nil {
+		return err
+	}
 	if c.Bool("copy") {
 		err := clipboard.WriteAll(t.Value)
 		if err != nil {
@@ -221,17 +223,25 @@ func (s *service) get(c *cli.Context) error {
 	return nil
 }
 
-func writeToken(writer io.Writer, token totp.Token, alias string, raw bool) {
+func writeToken(writer io.Writer, token totp.Token, alias string, raw bool) error {
 	if raw {
-		fmt.Fprint(writer, token.Value)
-		return
+		_, err := fmt.Fprint(writer, token.Value)
+		return err
 	}
 
 	secString := "second"
 	if token.TimeoutSec > 1 {
 		secString += "s"
 	}
-	fmt.Fprintf(writer, "Here is your token for '%s', valid within the next %d %s\n%s\n", alias, token.TimeoutSec, secString, token.Value)
+	_, err := fmt.Fprintf(
+		writer,
+		"Here is your token for '%s', valid within the next %d %s\n%s\n",
+		alias,
+		token.TimeoutSec,
+		secString,
+		token.Value,
+	)
+	return err
 }
 
 func (s *service) delete(c *cli.Context) error {

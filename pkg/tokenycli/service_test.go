@@ -15,7 +15,7 @@ func TestWriteToken(t *testing.T) {
 	t.Run("raw", func(t *testing.T) {
 		var output bytes.Buffer
 
-		writeToken(&output, token, "example", true)
+		assert.NoError(t, writeToken(&output, token, "example", true))
 
 		assert.Equal(t, "123456", output.String())
 	})
@@ -23,7 +23,7 @@ func TestWriteToken(t *testing.T) {
 	t.Run("normal", func(t *testing.T) {
 		var output bytes.Buffer
 
-		writeToken(&output, token, "example", false)
+		assert.NoError(t, writeToken(&output, token, "example", false))
 
 		assert.Equal(t, "Here is your token for 'example', valid within the next 12 seconds\n123456\n", output.String())
 	})
