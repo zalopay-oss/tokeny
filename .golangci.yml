@@ -1,6 +1,7 @@
 version: "2"
 run:
   concurrency: 2
+  timeout: 50m
   issues-exit-code: 1
   tests: false
 linters:
