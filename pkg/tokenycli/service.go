@@ -2,6 +2,7 @@ package tokenycli
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/atotto/clipboard"
@@ -11,6 +12,7 @@ import (
 	"github.com/zalopay-oss/tokeny/pkg/password"
 	"github.com/zalopay-oss/tokeny/pkg/session"
 	"github.com/zalopay-oss/tokeny/pkg/tokeny"
+	"github.com/zalopay-oss/tokeny/pkg/totp"
 )
 
 var (
@@ -86,6 +88,12 @@ func (s *service) getNormalCommands() []*cli.Command {
 					Aliases:  []string{"c"},
 					Required: false,
 					Usage:    "copy generated token to clipboard",
+				},
+				&cli.BoolFlag{
+					Name:     "raw",
+					Aliases:  []string{"r"},
+					Required: false,
+					Usage:    "print only the generated token",
 				},
 			},
 			Action: s.sessionWrapper(s.get),
@@ -198,21 +206,32 @@ func (s *service) get(c *cli.Context) error {
 		}
 		return err
 	}
-	secString := "second"
-	if t.TimeoutSec > 1 {
-		secString += "s"
-	}
-	fmt.Printf("Here is your token for '%s', valid within the next %d %s\n", alias, t.TimeoutSec, secString)
-	println(t.Value)
+	writeToken(os.Stdout, t, alias, c.Bool("raw"))
 	if c.Bool("copy") {
 		err := clipboard.WriteAll(t.Value)
 		if err != nil {
+			if c.Bool("raw") {
+				return err
+			}
 			println("Cannot copy to clipboard.")
-		} else {
+		} else if !c.Bool("raw") {
 			println("Copied to clipboard.")
 		}
 	}
 	return nil
+}
+
+func writeToken(writer io.Writer, token totp.Token, alias string, raw bool) {
+	if raw {
+		fmt.Fprint(writer, token.Value)
+		return
+	}
+
+	secString := "second"
+	if token.TimeoutSec > 1 {
+		secString += "s"
+	}
+	fmt.Fprintf(writer, "Here is your token for '%s', valid within the next %d %s\n%s\n", alias, token.TimeoutSec, secString, token.Value)
 }
 
 func (s *service) delete(c *cli.Context) error {

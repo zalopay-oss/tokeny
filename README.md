@@ -29,6 +29,13 @@ You can also clone this repo and build it yourself.
 
 Please consult `tokeny --help` for all features' usages.
 
+To print only an OTP, with no surrounding text or trailing newline (for example,
+for use in scripts), pass `--raw` or `-r` to `get`:
+
+```bash
+tokeny get --raw <alias>
+```
+
 ```bash
 NAME:
    tokeny - Another TOTP generator
