@@ -1,4 +1,5 @@
 project_name: tokeny
+version: 2
 
 builds:
   - # macOS
@@ -6,11 +7,6 @@ builds:
     main: ./main.go
     env:
       - CGO_ENABLED=0
-    goos:
-      - darwin
-    goarch:
-      - amd64
-      - arm64
     targets:
       - darwin_amd64
       - darwin_arm64
@@ -27,7 +23,7 @@ builds:
       - amd64
 brews:
   - name: tokeny
-    tap:
+    repository:
       owner: zalopay-oss
       name: homebrew-tap
     url_template: "https://github.com/zalopay-oss/tokeny/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
@@ -35,21 +31,18 @@ brews:
       name: Tokeny's GitHubAction
       email: phuc.quang102@gmail.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
-    folder: Formula
+    directory: Formula
     homepage: "https://github.com/zalopay-oss/tokeny"
     description: "Minimal TOTP generator from your Shell"
 archives:
-  - replacements:
-      amd64: x86_64
-      darwin: macOS
-      linux: Linux
+  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ if eq .Os "darwin" }}macOS{{ else if eq .Os "linux" }}Linux{{ else }}{{ .Os }}{{ end }}_{{ if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}'
     files:
       - README.md
       - LICENSE
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
