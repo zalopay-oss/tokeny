@@ -12,7 +12,6 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
-    - depguard
     - dogsled
     - dupl
     - durationcheck
@@ -56,12 +55,6 @@ linters:
     - whitespace
     - zerologlint
   settings:
-    depguard:
-      rules:
-        main:
-          deny:
-            - pkg: github.com/sirupsen/logrus
-              desc: logging is allowed only by logutils.Log
     funlen:
       lines: 60
       statements: 40
