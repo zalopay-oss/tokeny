@@ -73,6 +73,7 @@ linters:
       - linters:
           - staticcheck
         path: pkg/step
+        text: '^ST'
       - linters:
           - dupl
           - errcheck
