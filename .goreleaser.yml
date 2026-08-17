@@ -26,6 +26,7 @@ brews:
     repository:
       owner: zalopay-oss
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     url_template: "https://github.com/zalopay-oss/tokeny/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
       name: Tokeny's GitHubAction
