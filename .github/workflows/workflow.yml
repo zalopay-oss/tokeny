@@ -34,10 +34,18 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: '1.17.2'
+      - name: validate homebrew tap token
+        env:
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+        run: |
+          if [ -z "$HOMEBREW_TAP_GITHUB_TOKEN" ]; then
+            echo "::error::Missing HOMEBREW_TAP_GITHUB_TOKEN secret. Set a token with write access to zalopay-oss/homebrew-tap."
+            exit 1
+          fi
       - uses: goreleaser/goreleaser-action@v7
         with:
           version: '~> v2'
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
