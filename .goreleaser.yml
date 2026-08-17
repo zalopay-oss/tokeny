@@ -21,12 +21,14 @@ builds:
       - linux
     goarch:
       - amd64
-brews:
+homebrew_casks:
   - name: tokeny
     repository:
       owner: zalopay-oss
       name: homebrew-tap
-    url_template: "https://github.com/zalopay-oss/tokeny/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    url:
+      template: "https://github.com/zalopay-oss/tokeny/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
       name: Tokeny's GitHubAction
       email: phuc.quang102@gmail.com
