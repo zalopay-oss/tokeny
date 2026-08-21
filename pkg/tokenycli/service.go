@@ -2,6 +2,7 @@ package tokenycli
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/atotto/clipboard"
@@ -11,6 +12,7 @@ import (
 	"github.com/zalopay-oss/tokeny/pkg/password"
 	"github.com/zalopay-oss/tokeny/pkg/session"
 	"github.com/zalopay-oss/tokeny/pkg/tokeny"
+	"github.com/zalopay-oss/tokeny/pkg/totp"
 )
 
 var (
@@ -87,6 +89,12 @@ func (s *service) getNormalCommands() []*cli.Command {
 					Required: false,
 					Usage:    "copy generated token to clipboard",
 				},
+				&cli.BoolFlag{
+					Name:     "raw",
+					Aliases:  []string{"r"},
+					Required: false,
+					Usage:    "print only the generated token",
+				},
 			},
 			Action: s.sessionWrapper(s.get),
 		},
@@ -153,7 +161,11 @@ func (s *service) doRegister() error {
 
 func (s *service) sessionWrapper(actionFunc cli.ActionFunc) cli.ActionFunc {
 	return func(c *cli.Context) error {
-		if valid, err := s.ensureSession(); err != nil || !valid {
+		promptOut := os.Stdout
+		if c.Bool("raw") {
+			promptOut = os.Stderr
+		}
+		if valid, err := s.ensureSession(promptOut); err != nil || !valid {
 			return err
 		}
 		return actionFunc(c)
@@ -198,21 +210,42 @@ func (s *service) get(c *cli.Context) error {
 		}
 		return err
 	}
-	secString := "second"
-	if t.TimeoutSec > 1 {
-		secString += "s"
+	if err := writeToken(os.Stdout, t, alias, c.Bool("raw")); err != nil {
+		return err
 	}
-	fmt.Printf("Here is your token for '%s', valid within the next %d %s\n", alias, t.TimeoutSec, secString)
-	println(t.Value)
 	if c.Bool("copy") {
 		err := clipboard.WriteAll(t.Value)
 		if err != nil {
+			if c.Bool("raw") {
+				return err
+			}
 			println("Cannot copy to clipboard.")
-		} else {
+		} else if !c.Bool("raw") {
 			println("Copied to clipboard.")
 		}
 	}
 	return nil
+}
+
+func writeToken(writer io.Writer, token totp.Token, alias string, raw bool) error {
+	if raw {
+		_, err := fmt.Fprint(writer, token.Value)
+		return err
+	}
+
+	secString := "second"
+	if token.TimeoutSec > 1 {
+		secString += "s"
+	}
+	_, err := fmt.Fprintf(
+		writer,
+		"Here is your token for '%s', valid within the next %d %s\n%s\n",
+		alias,
+		token.TimeoutSec,
+		secString,
+		token.Value,
+	)
+	return err
 }
 
 func (s *service) delete(c *cli.Context) error {
@@ -258,7 +291,7 @@ func (s *service) list(c *cli.Context) error {
 	return nil
 }
 
-func (s *service) ensureSession() (bool, error) {
+func (s *service) ensureSession(promptOut io.Writer) (bool, error) {
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
 		return false, err
@@ -268,7 +301,7 @@ func (s *service) ensureSession() (bool, error) {
 		return true, nil
 	}
 
-	err = s.doLogin()
+	err = s.doLogin(promptOut)
 	if err != nil {
 		if errors.Is(err, password.ErrWrongPassword) {
 			println("Wrong password, please try again.")
@@ -285,10 +318,11 @@ func (s *service) ensureSession() (bool, error) {
 	return true, nil
 }
 
-func (s *service) doLogin() error {
+func (s *service) doLogin(promptOut io.Writer) error {
 	prompt := promptui.Prompt{
-		Label: "Password",
-		Mask:  ' ',
+		Label:  "Password",
+		Mask:   ' ',
+		Stdout: nopWriteCloser{promptOut},
 	}
 
 	result, err := prompt.Run()
@@ -303,3 +337,7 @@ func (s *service) doLogin() error {
 	}
 	return nil
 }
+
+type nopWriteCloser struct{ io.Writer }
+
+func (nopWriteCloser) Close() error { return nil }
