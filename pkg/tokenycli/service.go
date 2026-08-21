@@ -161,7 +161,11 @@ func (s *service) doRegister() error {
 
 func (s *service) sessionWrapper(actionFunc cli.ActionFunc) cli.ActionFunc {
 	return func(c *cli.Context) error {
-		if valid, err := s.ensureSession(); err != nil || !valid {
+		promptOut := os.Stdout
+		if c.Bool("raw") {
+			promptOut = os.Stderr
+		}
+		if valid, err := s.ensureSession(promptOut); err != nil || !valid {
 			return err
 		}
 		return actionFunc(c)
@@ -287,7 +291,7 @@ func (s *service) list(c *cli.Context) error {
 	return nil
 }
 
-func (s *service) ensureSession() (bool, error) {
+func (s *service) ensureSession(promptOut io.Writer) (bool, error) {
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
 		return false, err
@@ -297,7 +301,7 @@ func (s *service) ensureSession() (bool, error) {
 		return true, nil
 	}
 
-	err = s.doLogin()
+	err = s.doLogin(promptOut)
 	if err != nil {
 		if errors.Is(err, password.ErrWrongPassword) {
 			println("Wrong password, please try again.")
@@ -314,10 +318,11 @@ func (s *service) ensureSession() (bool, error) {
 	return true, nil
 }
 
-func (s *service) doLogin() error {
+func (s *service) doLogin(promptOut io.Writer) error {
 	prompt := promptui.Prompt{
-		Label: "Password",
-		Mask:  ' ',
+		Label:  "Password",
+		Mask:   ' ',
+		Stdout: nopWriteCloser{promptOut},
 	}
 
 	result, err := prompt.Run()
@@ -332,3 +337,7 @@ func (s *service) doLogin() error {
 	}
 	return nil
 }
+
+type nopWriteCloser struct{ io.Writer }
+
+func (nopWriteCloser) Close() error { return nil }
