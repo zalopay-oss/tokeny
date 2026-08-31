@@ -171,7 +171,7 @@ func (s *service) sessionWrapper(actionFunc cli.ActionFunc) cli.ActionFunc {
 		if c.Bool("raw") {
 			promptOut = os.Stderr
 		}
-		if valid, err := s.ensureSession(promptOut, c.String("password")); err != nil || !valid {
+		if valid, err := s.ensureSession(promptOut, c.String("password"), c.IsSet("password")); err != nil || !valid {
 			return err
 		}
 		return actionFunc(c)
@@ -297,7 +297,7 @@ func (s *service) list(c *cli.Context) error {
 	return nil
 }
 
-func (s *service) ensureSession(promptOut io.Writer, pwd string) (bool, error) {
+func (s *service) ensureSession(promptOut io.Writer, pwd string, pwdIsSet bool) (bool, error) {
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
 		return false, err
@@ -307,7 +307,7 @@ func (s *service) ensureSession(promptOut io.Writer, pwd string) (bool, error) {
 		return true, nil
 	}
 
-	if pwd != "" {
+	if pwdIsSet {
 		err = s.pwdManager.Login(pwd)
 	} else {
 		err = s.doLogin(promptOut)
