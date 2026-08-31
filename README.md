@@ -36,11 +36,12 @@ for use in scripts), pass `--raw` or `-r` to `get`:
 tokeny get --raw <alias>
 ```
 
-To use `get` non-interactively in scripts or automation pipelines (e.g. CI), pass the
-master password with `--password` or `-p` instead of being prompted for it:
+To use `get` non-interactively in scripts or automation pipelines (e.g. CI), supply the
+master password via the `TOKENY_PASSWORD` environment variable instead of the `--password`
+flag to avoid exposing it in process listings and shell history:
 
 ```bash
-tokeny get <alias> -p "$TOKENY_PASSWORD" --raw
+TOKENY_PASSWORD="<your-master-password>" tokeny get <alias> --raw
 ```
 
 ```bash
