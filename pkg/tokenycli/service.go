@@ -100,8 +100,8 @@ func (s *service) getNormalCommands() []*cli.Command {
 					Aliases:  []string{"p"},
 					Required: false,
 					Usage: "master password for non-interactive login; prefer the TOKENY_PASSWORD environment variable" +
-					" over this flag to avoid exposing the password in process listings and shell history",
-					EnvVars:  []string{"TOKENY_PASSWORD"},
+						" over this flag to avoid exposing the password in process listings and shell history",
+					EnvVars: []string{"TOKENY_PASSWORD"},
 				},
 			},
 			Action: s.sessionWrapper(s.get),
