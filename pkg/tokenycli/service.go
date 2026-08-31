@@ -95,6 +95,14 @@ func (s *service) getNormalCommands() []*cli.Command {
 					Required: false,
 					Usage:    "print only the generated token",
 				},
+				&cli.StringFlag{
+					Name:     "password",
+					Aliases:  []string{"p"},
+					Required: false,
+					Usage: "master password for non-interactive login; prefer the TOKENY_PASSWORD environment variable" +
+						" over this flag to avoid exposing the password in process listings and shell history",
+					EnvVars: []string{"TOKENY_PASSWORD"},
+				},
 			},
 			Action: s.sessionWrapper(s.get),
 		},
@@ -165,7 +173,7 @@ func (s *service) sessionWrapper(actionFunc cli.ActionFunc) cli.ActionFunc {
 		if c.Bool("raw") {
 			promptOut = os.Stderr
 		}
-		if valid, err := s.ensureSession(promptOut); err != nil || !valid {
+		if valid, err := s.ensureSession(promptOut, c.String("password"), c.IsSet("password")); err != nil || !valid {
 			return err
 		}
 		return actionFunc(c)
@@ -291,7 +299,7 @@ func (s *service) list(c *cli.Context) error {
 	return nil
 }
 
-func (s *service) ensureSession(promptOut io.Writer) (bool, error) {
+func (s *service) ensureSession(promptOut io.Writer, pwd string, pwdIsSet bool) (bool, error) {
 	valid, err := s.sessionManager.IsSessionValid(ppidStr)
 	if err != nil {
 		return false, err
@@ -301,7 +309,11 @@ func (s *service) ensureSession(promptOut io.Writer) (bool, error) {
 		return true, nil
 	}
 
-	err = s.doLogin(promptOut)
+	if pwdIsSet {
+		err = s.pwdManager.Login(pwd)
+	} else {
+		err = s.doLogin(promptOut)
+	}
 	if err != nil {
 		if errors.Is(err, password.ErrWrongPassword) {
 			println("Wrong password, please try again.")
