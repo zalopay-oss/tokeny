@@ -36,6 +36,13 @@ for use in scripts), pass `--raw` or `-r` to `get`:
 tokeny get --raw <alias>
 ```
 
+To use `get` non-interactively in scripts or automation pipelines (e.g. CI), pass the
+master password with `--password` or `-p` instead of being prompted for it:
+
+```bash
+tokeny get <alias> -p "$TOKENY_PASSWORD" --raw
+```
+
 ```bash
 NAME:
    tokeny - Another TOTP generator
